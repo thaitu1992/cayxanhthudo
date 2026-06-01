@@ -1,0 +1,6 @@
+{
+  "name": "Cho Thue Cay Xanh Van Phong",
+  "description": "Website landing page chuyên nghiệp chạy quảng cáo Google Ads cho dịch vụ cho thuê cây cảnh văn phòng - Cây Xanh Thủ Đô.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
