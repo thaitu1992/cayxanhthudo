@@ -39,31 +39,36 @@ import {
   TESTIMONIALS
 } from "./data";
 import { generateSingleFileHtml } from "./generateHtml";
+import lobbyTreePlanter from "./assets/images/lobby_tree_planter_1780305669999.png";
+import officeGreeneryLobby from "./assets/images/office_greenery_lobby_1780305697016.png";
+import officeGardenRelax from "./assets/images/office_garden_relax_1780305715599.png";
+import corporateGoldPots from "./assets/images/corporate_gold_pots_1780305734535.png";
+import dracaenaFragransOffice from "./assets/images/dracaena_fragrans_office_1780306247848.png";
 
 export const HERO_SLIDES = [
   {
-    image: "/src/assets/images/lobby_tree_planter_1780305669999.png",
+    image: lobbyTreePlanter,
     tag: "CÂY XANH THỦ ĐÔ • ƯU ĐÃI THUÊ HÈ 2026",
     title: "MANG THIÊN NHIÊN VÀO VĂN PHÒNG",
     subtitle: "Chỉ từ 1.2 Triệu/Tháng - Thiết kế 3D tối ưu nhiệt độ, gieo mầm năng lượng thịnh vượng.",
     badge: "Giảm 15% Hợp Đồng"
   },
   {
-    image: "/src/assets/images/office_greenery_lobby_1780305697016.png",
+    image: officeGreeneryLobby,
     tag: "BẢO HÀNH ĐỔI MỚI TOÀN DIỆN",
     title: "CHĂM SÓC ĐỊNH KỲ - ĐỔI CÂY MIỄN PHÍ",
     subtitle: "Kỹ thuật viên bón nước tỉ mẩn tỉ rải sạch bong bụi lá. Phát hiện cây úa héo rụng lả đổi mới trong 24h.",
     badge: "Thay thế FREE 24h"
   },
   {
-    image: "/src/assets/images/office_garden_relax_1780305715599.png",
+    image: officeGardenRelax,
     tag: "ĐA DẠNG CHỦNG LOẠI CAO CẤP",
     title: "150+ MẪU CÂY PHONG THỦY ĐÓN LỘC",
     subtitle: "Kim tiền, thiết mộc lan quân vương tinh chế lọc benzene tia sóng điện từ mang phồn thỉnh mộc gia quý.",
     badge: "Khảo Sát 0Đ Tận Nơi"
   },
   {
-    image: "/src/assets/images/corporate_gold_pots_1780305734535.png",
+    image: corporateGoldPots,
     tag: "SANG TRỌNG • ĐỘC ĐÁO • THỊNH VƯỢNG",
     title: "HƠN 150+ MẪU CHẬU CÂY PHONG THỦY",
     subtitle: "Sử dụng chậu mạ vàng, chậu đá mài cao cấp mang lại luồng sinh khí mới cho góc làm việc sành điệu.",
@@ -111,6 +116,23 @@ export default function App() {
   const [selectedService, setSelectedService] = useState("Thuê cây xanh văn phòng");
   const [customMessage, setCustomMessage] = useState("");
 
+  // Webhook & Telegram Bot integration states
+  const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem("lead_webhook_url") || "");
+  const [telegramToken, setTelegramToken] = useState(() => localStorage.getItem("lead_telegram_token") || "");
+  const [telegramChatId, setTelegramChatId] = useState(() => localStorage.getItem("lead_telegram_chat_id") || "");
+
+  // Local database lead history state
+  const [capturedLeads, setCapturedLeads] = useState<any[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("captured_leads") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showLeadsModal, setShowLeadsModal] = useState(false);
+
   // Single file code export state
   const [showExportPanel, setShowExportPanel] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -127,6 +149,68 @@ export default function App() {
     // Simulate event tracking
     console.log(`[Google Ads Conversion Tracker] Triggered for: ${sourceName}`);
     console.log(`Submit Data: name=${name}, phone=${phone}, service=${service}, msg=${message}`);
+
+    const newLead = {
+      id: Date.now().toString(),
+      name,
+      phone,
+      service,
+      message,
+      timestamp: new Date().toLocaleString("vi-VN"),
+      source: sourceName
+    };
+
+    // Save history locally to the browser
+    const updatedLeads = [newLead, ...capturedLeads];
+    setCapturedLeads(updatedLeads);
+    localStorage.setItem("captured_leads", JSON.stringify(updatedLeads));
+
+    // Send Telegram Notification
+    if (telegramToken && telegramChatId) {
+      const textMsg = `🌱 *YÊU CẦU BÁO GIÁ MỚI* 🌱\n\n` +
+        `▪️ *Khách hàng:* ${name}\n` +
+        `▪️ *Số điện thoại:* ${phone}\n` +
+        `▪️ *Dịch vụ đăng ký:* ${service}\n` +
+        `▪️ *Nội dung yêu cầu:* ${message || "Không có"}\n` +
+        `▪️ *Form đăng ký:* ${sourceName}\n` +
+        `▪️ *Thời gian:* ${new Date().toLocaleString("vi-VN")}`;
+
+      fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: textMsg,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          console.log("Đã gửi tin nhắn thông báo đến Telegram thành công!");
+        } else {
+          console.error("Lỗi gửi Telegram:", data.description);
+        }
+      })
+      .catch(err => {
+        console.error("Lỗi mạng Telegram:", err);
+      });
+    }
+
+    // Send Webhook (ví dụ: Google Sheets, Pancake, CRM)
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newLead)
+      })
+      .then(() => {
+        console.log("Đã đẩy dữ liệu lead lên Webhook thành công!");
+      })
+      .catch(err => {
+        console.error("Lỗi đẩy dữ liệu lên Webhook:", err);
+      });
+    }
 
     const leadInfo = { name, phone, service, message };
     setRegisteredLead(leadInfo);
@@ -174,19 +258,19 @@ export default function App() {
   }, [largeQty, midQty, smallQty]);
 
   const handleCopyCode = () => {
-    const code = generateSingleFileHtml();
+    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
     navigator.clipboard.writeText(code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 3000);
   };
 
   const handleDownloadFile = () => {
-    const code = generateSingleFileHtml();
+    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
     const blob = new Blob([code], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "landing-page-cay-xanh-thu-do.html";
+    a.download = "index.html";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -200,7 +284,7 @@ export default function App() {
       scientific: "Dracaena fragrans",
       benefits: "Lọc cực tốt khí benzene, toluene; Mang lại phú quý, may mắn thịnh vượng.",
       space: "Mặt tiền sảnh lớn, phòng họp VIP hoặc hành lang rộng rực ánh sáng.",
-      img: "/src/assets/images/dracaena_fragrans_office_1780306247848.png",
+      img: dracaenaFragransOffice,
       size: "Dáng trụ cột cao, 1m4 - 1m8"
     },
     {
@@ -234,35 +318,56 @@ export default function App() {
       
       {/* EXPORT CONTROL PANEL FOR THE GOOGLE ADS CONTRACTOR (CRITICAL USER CONTEXT) */}
       {showExportPanel && (
-        <div className="bg-emerald-950 border-b border-emerald-800 text-white p-4">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="bg-slate-950 border-b border-indigo-900 text-white p-4">
+          <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="inline-flex items-center gap-1.5 bg-amber-500 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                <Flame className="w-3.5 h-3.5 fill-slate-900" /> Google Ads Export Tools
-              </span>
-              <p className="text-sm font-bold text-emerald-100">
-                Phiên bản Landing Page 1 File HTML duy nhất đã sẵn sàng chạy quảng cáo!
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-amber-500 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <Flame className="w-3.5 h-3.5 fill-slate-900" /> Google Ads Export Tools
+                </span>
+                <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded">
+                  Active Leads: {capturedLeads.length}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-slate-100">
+                Phiên bản Landing Page 1-File HTML đã sẵn sàng chạy quảng cáo & nhận báo giá tự động!
               </p>
-              <p className="text-xs text-emerald-300">
-                Chứa đầy đủ Tailwind CSS, FontAwesome, Zalo/Hotline nút nổi và form thu lead cài đặt sẵn comment đo lường conversion tracker.
+              <p className="text-xs text-slate-300">
+                Lưu trữ tất cả đăng ký mượt mà vào trình duyệt. Hỗ trợ cấu hình chuyển tiếp lead cực nhanh về Telegram Group hoặc Webhook API (CRM, Google Sheets...).
               </p>
             </div>
             
-            <div className="flex flex-wrap gap-2.5 shrink-0">
+            <div className="flex flex-wrap gap-2.5 shrink-0 items-center">
+              <button
+                onClick={() => setShowLeadsModal(true)}
+                className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Quản lý Leads ({capturedLeads.length})
+              </button>
+
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Cấu hình Webhook/Telegram
+              </button>
+
               <button
                 onClick={handleCopyCode}
-                className="bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-600 text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95"
+                className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
-                {copiedCode ? "Đã Copy Thành Công!" : "Copy Mã HTML 1-File"}
+                {copiedCode ? "Đã Copy!" : "Copy Mã HTML"}
               </button>
               
               <button
                 onClick={handleDownloadFile}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95"
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                Tải Xuống File HTML (.html)
+                Tải Xuống File HTML
               </button>
 
               <button
@@ -271,6 +376,282 @@ export default function App() {
                 title="Đóng bảng xuất file"
               >
                 <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WEBHOOK & TELEGRAM CONFIG MODAL */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+            <div className="bg-indigo-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+                <h3 className="font-bold text-base text-white">Cấu hình Đẩy Báo Giá Tự Động</h3>
+              </div>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-5">
+              <div className="bg-indigo-50 border border-indigo-100 p-3.5 rounded-xl text-xs text-indigo-900 leading-relaxed">
+                <strong className="font-semibold block mb-1">💡 Các giải pháp nhận lead thời gian thực:</strong>
+                Khi khách điền biểu mẫu, hệ thống sẽ tự động thực hiện gửi báo cáo trực tiếp đến kênh Telegram hoặc API Webhook của bạn.
+                Khi bạn bấm <strong>Tải Xuống File HTML</strong>, cấu hình thông tin này cũng sẽ được đúc đóng gói tự động trực tiếp vô file HTML tải về!
+              </div>
+
+              {/* Telegram Form */}
+              <div className="space-y-3 border-b border-slate-100 pb-5">
+                <h4 className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-black">TG</span>
+                  1. Gửi thông báo về Telegram Bot (Miễn Phí)
+                </h4>
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-600">Telegram Bot Token</label>
+                  <input
+                    type="text"
+                    value={telegramToken}
+                    onChange={(e) => {
+                      setTelegramToken(e.target.value);
+                      localStorage.setItem("lead_telegram_token", e.target.value);
+                    }}
+                    placeholder="Ví dụ: 123456789:ABCDefGhIjKlM..."
+                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-600">Telegram Chat ID (Cá nhân hoặc Group ID)</label>
+                  <input
+                    type="text"
+                    value={telegramChatId}
+                    onChange={(e) => {
+                      setTelegramChatId(e.target.value);
+                      localStorage.setItem("lead_telegram_chat_id", e.target.value);
+                    }}
+                    placeholder="Ví dụ: -100123456789 hoặc 987654321"
+                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"
+                  />
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    * Mẹo: Tạo nhóm Telegram, thêm Bot của bạn vào, gõ <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-600">/my_id</code> hoặc dùng bot <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-600">@MissRose_bot</code> để lấy Chat ID cực kỳ nhanh chóng.
+                  </p>
+                </div>
+              </div>
+
+              {/* Webhook Form */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black">WH</span>
+                  2. Đẩy Lead về Webhook URL (CRM, Google Sheets, Pancake)
+                </h4>
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-600">Webhook URL (POST JSON)</label>
+                  <input
+                    type="url"
+                    value={webhookUrl}
+                    onChange={(e) => {
+                      setWebhookUrl(e.target.value);
+                      localStorage.setItem("lead_webhook_url", e.target.value);
+                    }}
+                    placeholder="Ví dụ: https://script.google.com/macros/s/.../exec"
+                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"
+                  />
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    * Thích hợp cho Google App Script tự động ghi vào Sheet, hoặc tích hợp Zapier, Make, Webhook Pancake LadiPage, CRM.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  if (telegramToken && telegramChatId) {
+                    alert("Đang kiểm tra gửi tin nhắn thử nghiệm đến Telegram...");
+                    fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        chat_id: telegramChatId,
+                        text: "🎉 *Cây Xanh Thủ Đô Test Bot*!\nHệ thống kết nối thời gian thực thành công mượt mà!"
+                      })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data.ok) alert("KẾT NỐI TELEGRAM THÀNH CÔNG! Hãy kiểm tra điện thoại của bạn.");
+                      else alert("LỖI TELEGRAM: " + data.description);
+                    })
+                    .catch(e => alert("Lỗi mạng Telegram: " + e.message));
+                  } else {
+                    alert("Hãy nhập đầy đủ thông tin Telegram Token & Chat ID để gửi test thử nghiệm!");
+                  }
+                }}
+                className="border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+              >
+                Gửi Test Telegram
+              </button>
+              <button
+                onClick={() => {
+                  alert("Đã lưu cấu hình thông báo thành công! Lúc này khi bạn bấm Copy hoặc Tải Xuống File HTML, cài đặt này sẽ được lưu giữ mượt mà.");
+                  setShowConfigModal(false);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md transition cursor-pointer"
+              >
+                Hoàn Tất & Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LEADS PANEL MODAL */}
+      {showLeadsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
+            <div className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <h3 className="font-bold text-base text-white">Hộp Thư Yêu Cầu Báo Giá ({capturedLeads.length})</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">Bảo mật tuyệt đối, lưu trữ an toàn trong trình duyệt (localStorage)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLeadsModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 min-h-[300px]">
+              {capturedLeads.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400 space-y-2">
+                  <FileText className="w-12 h-12 text-slate-300 stroke-[1.5]" />
+                  <p className="text-sm font-semibold">Chưa có khách hàng đăng ký nào đăng ký báo giá</p>
+                  <p className="text-xs text-slate-400">Các yêu cầu từ form sẽ xuất hiện tại đây.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <span className="text-xs text-slate-500 font-medium">Dữ liệu được lưu trữ trên trình duyệt của bạn cho tên miền thuecayxanhvanphong.online.</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (capturedLeads.length === 0) {
+                            alert("Chưa có danh sách leads nào để xuất!");
+                            return;
+                          }
+                          let csvContent = "\uFEFF";
+                          csvContent += "ID,Họ Tên,Số Điện Thoại,Dịch Vụ,Lời Nhắn,Thời Gian,Nguồn Đăng Ký\n";
+                          capturedLeads.forEach(lead => {
+                            const row = [
+                              lead.id,
+                              `"${lead.name.replace(/"/g, '""')}"`,
+                              `"${lead.phone.replace(/"/g, '""')}"`,
+                              `"${lead.service.replace(/"/g, '""')}"`,
+                              `"${(lead.message || "").replace(/"/g, '""')}"`,
+                              `"${lead.timestamp}"`,
+                              `"${lead.source}"`
+                            ].join(",");
+                            csvContent += row + "\n";
+                          });
+
+                          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.setAttribute("href", url);
+                          link.setAttribute("download", `danh_sach_leads_dang_ky_${Date.now()}.csv`);
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1 shadow-sm cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Xuất File Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Bạn có chắc chắn muốn xóa tất cả danh sách leads đã ghi nhận? Hành động này không thể hoàn tác!")) {
+                            setCapturedLeads([]);
+                            localStorage.removeItem("captured_leads");
+                          }
+                        }}
+                        className="border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
+                      >
+                        Xóa Tất Cả
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100 text-slate-700">
+                          <th className="p-3 font-semibold">Thời Gian</th>
+                          <th className="p-3 font-semibold">Khách Hàng</th>
+                          <th className="p-3 font-semibold">Số Điện Thoại</th>
+                          <th className="p-3 font-semibold">Gói Đăng Ký</th>
+                          <th className="p-3 font-semibold">Lời Nhắn / Yêu Cầu</th>
+                          <th className="p-3 font-semibold">Form Nguồn</th>
+                          <th className="p-3 text-center font-semibold">Hành Động</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-600 font-medium">
+                        {capturedLeads.map((lead, index) => (
+                          <tr key={lead.id || index} className="hover:bg-slate-50">
+                            <td className="p-3 whitespace-nowrap text-slate-400">{lead.timestamp}</td>
+                            <td className="p-3 font-bold text-slate-900">{lead.name}</td>
+                            <td className="p-3 whitespace-nowrap">
+                              <a href={`tel:${lead.phone}`} className="text-indigo-600 hover:underline font-bold">
+                                {lead.phone}
+                              </a>
+                            </td>
+                            <td className="p-3">
+                              <span className="inline-block bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100">
+                                {lead.service}
+                              </span>
+                            </td>
+                            <td className="p-3 max-w-xs break-words text-slate-500 italic">
+                              {lead.message || "—"}
+                            </td>
+                            <td className="p-3">
+                              <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded">
+                                {lead.source}
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                onClick={() => {
+                                  const filtered = capturedLeads.filter(l => l.id !== lead.id);
+                                  setCapturedLeads(filtered);
+                                  localStorage.setItem("captured_leads", JSON.stringify(filtered));
+                                }}
+                                className="text-red-500 hover:text-red-700 text-[10px] font-bold cursor-pointer"
+                              >
+                                Xóa
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end shrink-0">
+              <button
+                onClick={() => setShowLeadsModal(false)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs transition cursor-pointer"
+              >
+                Đóng Lại
               </button>
             </div>
           </div>
@@ -679,7 +1060,7 @@ export default function App() {
               {/* Ensure image inside doesn't move with width of container */}
               <div className="absolute inset-0 w-[90vw] max-w-4xl h-[280px] sm:h-[420px]">
                 <img
-                  src="/src/assets/images/lobby_tree_planter_1780305669999.png"
+                  src={lobbyTreePlanter}
                   alt="After Office Makeover"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

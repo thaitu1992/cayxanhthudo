@@ -1,6 +1,10 @@
 import { BUSINESS_INFO } from "./data";
 
-export function generateSingleFileHtml(): string {
+export function generateSingleFileHtml(
+  webhookUrl: string = "",
+  telegramToken: string = "",
+  telegramChatId: string = ""
+): string {
   return `<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1459,7 +1463,7 @@ export function generateSingleFileHtml(): string {
 
         /**
          * Hàm xử lý khi khách gửi form thu thập đối tác
-         * Giúp lưu thông tin, phản hồi và triggers các thẻ đo lường Google Ads
+         * Giúp lưu thông tin, phản hồi và gửi notify về Telegram / Webhook doanh nghiệp
          */
         function submitLeadForm(e, source) {
             e.preventDefault();
@@ -1467,10 +1471,77 @@ export function generateSingleFileHtml(): string {
             const formData = new FormData(form);
             const name = formData.get('name') || '';
             const phone = formData.get('phone') || '';
-            const serviceType = formData.get('service_type') || formData.get('service') || '';
+            const serviceType = formData.get('service_type') || formData.get('service') || 'Thuê cây xanh văn phòng';
             const message = formData.get('message') || '';
 
             console.log("Submit Form thành công từ [" + source + "]:", { name, phone, serviceType, message });
+
+            // Lưu trữ thông tin đăng ký vào danh sách của trình duyệt khách hàng
+            try {
+                const localLeads = JSON.parse(localStorage.getItem('captured_leads') || '[]');
+                const newLead = {
+                    id: Date.now().toString(),
+                    name: name,
+                    phone: phone,
+                    service: serviceType,
+                    message: message,
+                    timestamp: new Date().toLocaleString('vi-VN'),
+                    source: source
+                };
+                localLeads.unshift(newLead);
+                localStorage.setItem('captured_leads', JSON.stringify(localLeads));
+            } catch (err) {
+                console.error("Lỗi lưu trữ cục bộ:", err);
+            }
+
+            // Gửi báo động qua Telegram Group nếu có cấu hình
+            const tgToken = "${telegramToken}";
+            const tgChatId = "${telegramChatId}";
+            if (tgToken && tgChatId) {
+                const textMsg = "🌱 **CÓ YÊU CẦU BÁO GIÁ MỚI** 🌱\n\n" +
+                    "▪️ **Khách hàng:** " + name + "\n" +
+                    "▪️ **Số điện thoại:** " + phone + "\n" +
+                    "▪️ **Gói quan tâm:** " + serviceType + "\n" +
+                    "▪️ **Nội dung yêu cầu:** " + (message || "Không có") + "\n" +
+                    "▪️ **Form đăng ký:** " + source + "\n" +
+                    "▪️ **Thời gian gửi:** " + new Date().toLocaleString('vi-VN');
+
+                fetch("https://api.telegram.org/bot" + tgToken + "/sendMessage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: tgChatId,
+                        text: textMsg,
+                        parse_mode: "Markdown"
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) console.log("Gửi thông báo Telegram thành công!");
+                    else console.error("Lỗi gửi thông báo Telegram:", data.description);
+                })
+                .catch(function(err) { console.error("Lỗi mạng Telegram:", err); });
+            }
+
+            // Đẩy lead về Webhook nếu có cấu hình (ví dụ: Google Sheets, Pancake, CRM)
+            const hookUrl = "${webhookUrl}";
+            if (hookUrl) {
+                fetch(hookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: Date.now().toString(),
+                        name: name,
+                        phone: phone,
+                        service: serviceType,
+                        message: message,
+                        timestamp: new Date().toLocaleString('vi-VN'),
+                        source: source
+                    })
+                })
+                .then(function() { console.log("Đẩy dữ liệu lên Webhook thành công!"); })
+                .catch(function(err) { console.error("Lỗi đẩy dữ liệu Webhook:", err); });
+            }
 
             // 1. Fire Google Ads Conversion Event
             // Bạn hãy thay thế ID cụ thể ở phần AW-XXXXXXXXX/YYYYYYYYYY bên dưới để kích hoạt đo lường
