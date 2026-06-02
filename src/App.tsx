@@ -38,6 +38,7 @@ import {
   STATS,
   TESTIMONIALS
 } from "./data";
+import { generateSingleFileHtml } from "./generateHtml";
 
 import imgLobby from "./assets/lobby_tree_planter_1780305669999.png";
 import imgLobbyGreen from "./assets/office_greenery_lobby_1780305697016.png";
@@ -172,6 +173,27 @@ export default function App() {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLeadsModal, setShowLeadsModal] = useState(false);
   const [showSheetScript, setShowSheetScript] = useState(false);
+
+  // Copy single-file standalone HTML
+  const handleCopyCode = () => {
+    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
+    navigator.clipboard.writeText(code);
+    alert("Đã sao chép toàn bộ mã nguồn Standalone HTML thành công vào Clipboard!");
+  };
+
+  // Download single-file standalone HTML
+  const handleDownloadFile = () => {
+    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
+    const blob = new Blob([code], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "index.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Form submission handler
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>, sourceName: string) => {
@@ -539,6 +561,20 @@ export default function App() {
 
             <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end gap-2 shrink-0">
               <button
+                onClick={handleCopyCode}
+                className="border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-bold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1"
+                title="Sao chép toàn bộ mã nguồn của trang đích thành 1 file HTML duy nhất"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copy Mã HTML
+              </button>
+              <button
+                onClick={handleDownloadFile}
+                className="border border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 font-bold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1 whitespace-nowrap"
+                title="Tải tệp tin index.html đã được đúc đóng gói cấu hình"
+              >
+                <Download className="w-3.5 h-3.5" /> Tải Xuống File HTML
+              </button>
+              <button
                 onClick={() => {
                   if (telegramToken && telegramChatId) {
                     alert("Đang kiểm tra gửi tin nhắn thử nghiệm đến Telegram...");
@@ -560,16 +596,16 @@ export default function App() {
                     alert("Hãy nhập đầy đủ thông tin Telegram Token & Chat ID để gửi test thử nghiệm!");
                   }
                 }}
-                className="border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                className="border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-bold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer whitespace-nowrap"
               >
                 Gửi Test Telegram
               </button>
               <button
                 onClick={() => {
-                  alert("Đã lưu cấu hình thông báo thành công! Lúc này khi bạn bấm Copy hoặc Tải Xuống File HTML, cài đặt này sẽ được lưu giữ mượt mà.");
+                  alert("Đã lưu cấu hình thông báo thành công! Lúc này khi khách điền form sẽ tự động gửi thông tin về các kênh đã lưu.");
                   setShowConfigModal(false);
                 }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md transition cursor-pointer"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md transition cursor-pointer whitespace-nowrap"
               >
                 Hoàn Tất & Lưu
               </button>
@@ -2317,10 +2353,25 @@ export default function App() {
             <span>
               © 2026 Cayxanhthudo.vn. Hệ thống trang đích tối ưu hóa bám đuổi & sự kiện thẻ Google Ads 100% tỷ lệ chuyển đổi.
             </span>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-x-4 gap-y-2 text-slate-500">
               <a href="#services" className="hover:underline hover:text-white">Bảng giá</a>
               <a href="#plants-showcase" className="hover:underline hover:text-white">Danh mục cây</a>
               <a href="#form-section" className="hover:underline hover:text-white">Nhận tư vấn tức thì</a>
+              <span className="text-slate-700 hidden sm:inline">|</span>
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="hover:underline hover:text-indigo-400 font-bold flex items-center gap-1 cursor-pointer"
+                title="Quản lý Webhook, Google Sheets Apps Script & cấu hình nhận tin nhắn Telegram"
+              >
+                ⚙️ Cấu hình
+              </button>
+              <button
+                onClick={() => setShowLeadsModal(true)}
+                className="hover:underline hover:text-emerald-400 font-bold flex items-center gap-1 cursor-pointer"
+                title="Xem danh sách khách hàng đã đăng ký nhận báo cáo từ trình duyệt"
+              >
+                📊 Hộp thư Leads ({capturedLeads.length})
+              </button>
             </div>
           </div>
         </div>
