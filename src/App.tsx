@@ -38,7 +38,6 @@ import {
   STATS,
   TESTIMONIALS
 } from "./data";
-import { generateSingleFileHtml } from "./generateHtml";
 
 export const HERO_SLIDES = [
   {
@@ -128,10 +127,6 @@ export default function App() {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLeadsModal, setShowLeadsModal] = useState(false);
   const [showSheetScript, setShowSheetScript] = useState(false);
-
-  // Single file code export state
-  const [showExportPanel, setShowExportPanel] = useState(true);
-  const [copiedCode, setCopiedCode] = useState(false);
 
   // Form submission handler
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>, sourceName: string) => {
@@ -253,26 +248,6 @@ export default function App() {
     }
   }, [largeQty, midQty, smallQty]);
 
-  const handleCopyCode = () => {
-    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
-    navigator.clipboard.writeText(code);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 3000);
-  };
-
-  const handleDownloadFile = () => {
-    const code = generateSingleFileHtml(webhookUrl, telegramToken, telegramChatId);
-    const blob = new Blob([code], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "index.html";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   // List of showcase office plants with descriptions & specs
   const SHOWCASE_PLANTS = [
     {
@@ -312,72 +287,6 @@ export default function App() {
   return (
     <div className="font-sans text-slate-800 bg-slate-50 min-h-screen selection:bg-emerald-500 selection:text-white">
       
-      {/* EXPORT CONTROL PANEL FOR THE GOOGLE ADS CONTRACTOR (CRITICAL USER CONTEXT) */}
-      {showExportPanel && (
-        <div className="bg-slate-950 border-b border-indigo-900 text-white p-4">
-          <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 bg-amber-500 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  <Flame className="w-3.5 h-3.5 fill-slate-900" /> Google Ads Export Tools
-                </span>
-                <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded">
-                  Active Leads: {capturedLeads.length}
-                </span>
-              </div>
-              <p className="text-sm font-bold text-slate-100">
-                Phiên bản Landing Page 1-File HTML đã sẵn sàng chạy quảng cáo & nhận báo giá tự động!
-              </p>
-              <p className="text-xs text-slate-300">
-                Lưu trữ tất cả đăng ký mượt mà vào trình duyệt. Hỗ trợ cấu hình chuyển tiếp lead cực nhanh về Telegram Group hoặc Webhook API (CRM, Google Sheets...).
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap gap-2.5 shrink-0 items-center">
-              <button
-                onClick={() => setShowLeadsModal(true)}
-                className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                Quản lý Leads ({capturedLeads.length})
-              </button>
-
-              <button
-                onClick={() => setShowConfigModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Cấu hình Webhook/Telegram
-              </button>
-
-              <button
-                onClick={handleCopyCode}
-                className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                {copiedCode ? "Đã Copy!" : "Copy Mã HTML"}
-              </button>
-              
-              <button
-                onClick={handleDownloadFile}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black py-2 px-3.5 rounded-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Tải Xuống File HTML
-              </button>
-
-              <button
-                onClick={() => setShowExportPanel(false)}
-                className="text-slate-400 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition"
-                title="Đóng bảng xuất file"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* WEBHOOK & TELEGRAM CONFIG MODAL */}
       {showConfigModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
