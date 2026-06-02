@@ -1526,21 +1526,26 @@ export function generateSingleFileHtml(
             // Đẩy lead về Webhook nếu có cấu hình (ví dụ: Google Sheets, Pancake, CRM)
             const hookUrl = "${webhookUrl}";
             if (hookUrl) {
-                fetch(hookUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id: Date.now().toString(),
-                        name: name,
-                        phone: phone,
-                        service: serviceType,
-                        message: message,
-                        timestamp: new Date().toLocaleString('vi-VN'),
-                        source: source
+                if (hookUrl.toLowerCase().indexOf("docs.google.com/spreadsheets") !== -1) {
+                    console.warn("Lỗi bảo mật CORS khi cố gắng POST dữ liệu trực tiếp lên link Google Sheets.");
+                    alert("⚠️ BÁO LỖI CẤU HÌNH WEBHOOK:\n\nBạn đang cấu hình Webhook là link Google Sheets trực tiếp (docs.google.com/spreadsheets/...). Trình duyệt sẽ bị chặn bảo mật CORS và không thể gửi trực tiếp từ máy khách!\n\n👉 CÁCH GIẢI QUYẾT:\n1. Mở phần cấu hình (⚙️) ở trang quản trị.\n2. Xem hướng dẫn kết nối Google Sheets, Copy đoạn mã Apps Script dán vào Extensions -> Apps Script của Sheet.\n3. Bấm Deploy (Triển khai) -> New deployment -> Web App, chọn Who has access: 'Anyone' (Mọi người) để lấy link dạng /exec dán vào!");
+                } else {
+                    fetch(hookUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: Date.now().toString(),
+                            name: name,
+                            phone: phone,
+                            service: serviceType,
+                            message: message,
+                            timestamp: new Date().toLocaleString('vi-VN'),
+                            source: source
+                        })
                     })
-                })
-                .then(function() { console.log("Đẩy dữ liệu lên Webhook thành công!"); })
-                .catch(function(err) { console.error("Lỗi đẩy dữ liệu Webhook:", err); });
+                    .then(function() { console.log("Đẩy dữ liệu lên Webhook thành công!"); })
+                    .catch(function(err) { console.error("Lỗi đẩy dữ liệu Webhook:", err); });
+                }
             }
 
             // 1. Fire Google Ads Conversion Event

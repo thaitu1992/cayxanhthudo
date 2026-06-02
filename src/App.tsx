@@ -161,6 +161,17 @@ export default function App() {
   const [telegramToken, setTelegramToken] = useState(() => localStorage.getItem("lead_telegram_token") || "");
   const [telegramChatId, setTelegramChatId] = useState(() => localStorage.getItem("lead_telegram_chat_id") || "");
 
+  // Dynamic parsing of Google Sheets link to pre-configure Google Apps Script custom code
+  const parsedSheetId = (() => {
+    if (webhookUrl && webhookUrl.toLowerCase().includes("docs.google.com/spreadsheets")) {
+      const match = webhookUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) return match[1];
+    }
+    return "1mfW5mpTKrJW46rWCAnMm1MtXOmgR6rSykdmoWnKqG58";
+  })();
+
+  const parsedSheetUrl = `https://docs.google.com/spreadsheets/d/${parsedSheetId}/edit?pli=1&gid=0#gid=0`;
+
   // Local database lead history state
   const [capturedLeads, setCapturedLeads] = useState<any[]>(() => {
     try {
@@ -257,17 +268,22 @@ export default function App() {
 
     // Send Webhook (ví dụ: Google Sheets, Pancake, CRM)
     if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newLead)
-      })
-      .then(() => {
-        console.log("Đã đẩy dữ liệu lead lên Webhook thành công!");
-      })
-      .catch(err => {
-        console.error("Lỗi đẩy dữ liệu lên Webhook:", err);
-      });
+      if (webhookUrl.toLowerCase().includes("docs.google.com/spreadsheets")) {
+        console.warn("Lỗi bảo mật CORS khi cố gắng POST dữ liệu trực tiếp lên link Google Sheets. Cần dùng Apps Script Web App URL.");
+        alert("⚠️ BÁO LỖI CẤU HÌNH WEBHOOK:\n\nBạn đang cài đặt ô 'Webhook URL' là link Google Sheets trực tiếp (docs.google.com/spreadsheets/...). Trình duyệt sẽ bị chặn bảo mật (CORS ID) và không thể gửi trực tiếp từ máy khách!\n\n👉 CÁCH GIẢI QUYẾT:\n1. Nhấn nút '⚙️ Cấu hình' ở góc dưới cùng (footer).\n2. Chọn 'Xem hướng dẫn & lấy mã' dưới mục kết nối Google Sheets.\n3. Tiến hành Copy Script, dán vào Apps Script của Sheets, bấm Deploy lấy 'URL ứng dụng web' (Có đuôi /exec) rồi dán vào ô Webhook.");
+      } else {
+        fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newLead)
+        })
+        .then(() => {
+          console.log("Đã đẩy dữ liệu lead lên Webhook thành công!");
+        })
+        .catch(err => {
+          console.error("Lỗi đẩy dữ liệu lên Webhook:", err);
+        });
+      }
     }
 
     const leadInfo = { name, phone, service, message };
@@ -433,6 +449,16 @@ export default function App() {
                     placeholder="Ví dụ: https://script.google.com/macros/s/.../exec"
                     className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"
                   />
+                  {webhookUrl && webhookUrl.toLowerCase().includes("docs.google.com/spreadsheets") && (
+                    <div className="bg-amber-50 border border-amber-200 text-amber-900 text-[11px] rounded-lg p-3 leading-relaxed mt-1 shadow-sm">
+                      <p className="font-extrabold flex items-center gap-1 text-xs text-amber-800">
+                        ⚠️ ĐƯỜNG DẪN CHƯA CHÍNH XÁC:
+                      </p>
+                      <p className="mt-1">Bạn đang dán thẳng link trang tính <strong>docs.google.com/spreadsheets</strong>. Trình duyệt không thể tự gửi dữ liệu trực tiếp vào link này vì rào cản bảo mật CORS.</p>
+                      <p className="mt-1.5 font-bold">👉 Cách cài đặt đúng:</p>
+                      <p>Hãy xem phần <strong className="text-emerald-950 underline font-bold">"Xem hướng dẫn & lấy mã"</strong> dưới đây, thực hiện dán code Script vào Sheets và lấy link deployment dạng <strong>https://script.google.com/macros/s/.../exec</strong> dán vào đây!</p>
+                    </div>
+                  )}
                   <p className="text-[10px] text-slate-400 leading-normal">
                     * Nhận dữ liệu thời gian thực và tự động ghi thẳng vào Google Sheets, CRM hoặc LadiPage.
                   </p>
@@ -459,10 +485,10 @@ export default function App() {
                       <p className="font-semibold text-emerald-950">
                         Bảng tính của bạn: 
                         <a 
-                          href="https://docs.google.com/spreadsheets/d/1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM/edit#gid=341656804" 
+                          href={parsedSheetUrl} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="text-indigo-600 hover:underline inline-flex items-center gap-1 ml-1 font-bold"
+                          className="text-indigo-600 hover:underline inline-flex items-center gap-1 ml-1 font-bold animate-pulse"
                         >
                           Mở Trang Google Sheet <ExternalLink className="w-3 h-3" />
                         </a>
@@ -488,7 +514,7 @@ export default function App() {
                             onClick={() => {
                               const scriptCode = `function doPost(e) {
   try {
-    var sheetId = "1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM";
+    var sheetId = "${parsedSheetId}";
     var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
     
     // Nếu bảng tính rỗng, tự động tạo dòng tiêu đề trước
@@ -525,7 +551,7 @@ export default function App() {
                         <pre className="bg-slate-900 text-slate-100 text-[10px] leading-relaxed p-3 rounded-lg overflow-x-auto max-h-[160px] font-mono border border-slate-800">
 {`function doPost(e) {
   try {
-    var sheetId = "1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM";
+    var sheetId = "${parsedSheetId}";
     var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
     
     // Nếu bảng tính rỗng, tự động tạo dòng tiêu đề trước
