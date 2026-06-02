@@ -39,30 +39,54 @@ import {
   TESTIMONIALS
 } from "./data";
 
+import imgLobby from "./assets/lobby_tree_planter_1780305669999.png";
+import imgLobbyGreen from "./assets/office_greenery_lobby_1780305697016.png";
+import imgGardenRelax from "./assets/office_garden_relax_1780305715599.png";
+import imgGoldPots from "./assets/corporate_gold_pots_1780305734535.png";
+import imgDracaena from "./assets/dracaena_fragrans_office_1780306247848.png";
+
+const IMG_FALLBACK =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'>
+       <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+         <stop offset='0%' stop-color='#065f46'/>
+         <stop offset='100%' stop-color='#10b981'/>
+       </linearGradient></defs>
+       <rect width='600' height='400' fill='url(#g)'/>
+       <text x='50%' y='50%' fill='white' font-family='sans-serif' font-size='28' font-weight='700' text-anchor='middle' dominant-baseline='middle'>CÂY XANH THỦ ĐÔ</text>
+     </svg>`
+  );
+
+const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const el = e.currentTarget;
+  if (el.src !== IMG_FALLBACK) el.src = IMG_FALLBACK;
+};
+
 export const HERO_SLIDES = [
   {
-    image: "/images/lobby_tree_planter_1780305669999.png",
+    image: imgLobby,
     tag: "CÂY XANH THỦ ĐÔ • ƯU ĐÃI THUÊ HÈ 2026",
     title: "MANG THIÊN NHIÊN VÀO VĂN PHÒNG",
     subtitle: "Chỉ từ 1.2 Triệu/Tháng - Thiết kế 3D tối ưu nhiệt độ, gieo mầm năng lượng thịnh vượng.",
     badge: "Giảm 15% Hợp Đồng"
   },
   {
-    image: "/images/office_greenery_lobby_1780305697016.png",
+    image: imgLobbyGreen,
     tag: "BẢO HÀNH ĐỔI MỚI TOÀN DIỆN",
     title: "CHĂM SÓC ĐỊNH KỲ - ĐỔI CÂY MIỄN PHÍ",
     subtitle: "Kỹ thuật viên bón nước tỉ mẩn tỉ rải sạch bong bụi lá. Phát hiện cây úa héo rụng lả đổi mới trong 24h.",
     badge: "Thay thế FREE 24h"
   },
   {
-    image: "/images/office_garden_relax_1780305715599.png",
+    image: imgGardenRelax,
     tag: "ĐA DẠNG CHỦNG LOẠI CAO CẤP",
     title: "150+ MẪU CÂY PHONG THỦY ĐÓN LỘC",
     subtitle: "Kim tiền, thiết mộc lan quân vương tinh chế lọc benzene tia sóng điện từ mang phồn thỉnh mộc gia quý.",
     badge: "Khảo Sát 0Đ Tận Nơi"
   },
   {
-    image: "/images/corporate_gold_pots_1780305734535.png",
+    image: imgGoldPots,
     tag: "SANG TRỌNG • ĐỘC ĐÁO • THỊNH VƯỢNG",
     title: "HƠN 150+ MẪU CHẬU CÂY PHONG THỦY",
     subtitle: "Sử dụng chậu mạ vàng, chậu đá mài cao cấp mang lại luồng sinh khí mới cho góc làm việc sành điệu.",
@@ -276,7 +300,7 @@ export default function App() {
       scientific: "Dracaena fragrans",
       benefits: "Lọc cực tốt khí benzene, toluene; Mang lại phú quý, may mắn thịnh vượng.",
       space: "Mặt tiền sảnh lớn, phòng họp VIP hoặc hành lang rộng rực ánh sáng.",
-      img: "/images/dracaena_fragrans_office_1780306247848.png",
+      img: imgDracaena,
       size: "Dáng trụ cột cao, 1m4 - 1m8"
     },
     {
@@ -284,7 +308,7 @@ export default function App() {
       scientific: "Zamioculcas zamiifolia",
       benefits: "Hút sóng bức xạ điện từ, diệt vi khuẩn; Chiêu tài đắc lộc, sinh khí dồi dào.",
       space: "Bàn làm việc giám đốc, quầy lễ tân đón tiếp khách hoặc cạnh tủ tài liệu.",
-      img: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=600&auto=format&fit=crop",
+      img: imgGoldPots,
       size: "Thân mọng xum xuê, cao 60cm - 1m"
     },
     {
@@ -292,7 +316,7 @@ export default function App() {
       scientific: "Sansevieria trifasciata",
       benefits: "Sản sinh lượng oxy lớn vào ban đêm; Trói giữ bình an, trừ tà khí xui xẻo.",
       space: "Khu vực sảnh tiếp đón khách hàng, sát vách kính ngăn, góc phòng ngủ/làm việc mộc mạc.",
-      img: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=600&auto=format&fit=crop",
+      img: imgGardenRelax,
       size: "Lá vươn thẳng nhọn hoắt, cao 50cm - 90cm"
     },
     {
@@ -300,7 +324,7 @@ export default function App() {
       scientific: "Dieffenbachia amoena",
       benefits: "Cân bằng độ ẩm nhanh chóng văn phòng điều hòa; Cát tường thuận lợi bền lâu.",
       space: "Những góc phòng trống khô khan, kế bên kệ tivi hoặc chân cầu thang chuyển tiếp.",
-      img: "https://images.unsplash.com/photo-1597055181300-e3633a207518?q=80&w=600&auto=format&fit=crop",
+      img: imgLobbyGreen,
       size: "Bản lá to mềm mại, cao 80cm - 1m2"
     }
   ];
@@ -888,6 +912,8 @@ export default function App() {
                       alt={slide.title}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      onError={handleImgError}
                     />
 
                     {/* Badge at the top right of the active slide */}
@@ -1090,10 +1116,11 @@ export default function App() {
             {/* Before (Gray Empty Office) */}
             <div className="absolute inset-0 w-full h-full">
               <img
-                src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop"
+                src={imgGardenRelax}
                 alt="Before Office Makeover"
                 className="w-full h-full object-cover grayscale brightness-90 saturate-50"
                 referrerPolicy="no-referrer"
+                onError={handleImgError}
               />
               <div className="absolute top-4 left-4 bg-black/70 text-white text-[10px] uppercase font-extrabold px-3 py-1.5 rounded shadow z-20">
                 Trước: Văn phòng tẻ nhạt, bí bách, đầy tia bức xạ máy tính
@@ -1111,10 +1138,11 @@ export default function App() {
                 style={{ width: `${sliderWidth}px` }}
               >
                 <img
-                  src="/images/lobby_tree_planter_1780305669999.png"
+                  src={imgLobby}
                   alt="After Office Makeover"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
+                  onError={handleImgError}
                 />
               </div>
               <div className="absolute top-4 right-4 bg-emerald-600 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded shadow z-25 whitespace-nowrap hidden sm:inline-block">
@@ -1573,6 +1601,7 @@ export default function App() {
                     alt={SHOWCASE_PLANTS[selectedPlantTab].name}
                     className="w-full h-64 object-cover rounded-xl shadow-md border border-slate-200"
                     referrerPolicy="no-referrer"
+                    onError={handleImgError}
                   />
                 </div>
 
