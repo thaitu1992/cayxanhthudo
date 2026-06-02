@@ -1532,7 +1532,7 @@ export function generateSingleFileHtml(
                 } else {
                     fetch(hookUrl, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
                         body: JSON.stringify({
                             id: Date.now().toString(),
                             name: name,
