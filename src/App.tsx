@@ -39,36 +39,31 @@ import {
   TESTIMONIALS
 } from "./data";
 import { generateSingleFileHtml } from "./generateHtml";
-import lobbyTreePlanter from "./assets/images/lobby_tree_planter_1780305669999.png";
-import officeGreeneryLobby from "./assets/images/office_greenery_lobby_1780305697016.png";
-import officeGardenRelax from "./assets/images/office_garden_relax_1780305715599.png";
-import corporateGoldPots from "./assets/images/corporate_gold_pots_1780305734535.png";
-import dracaenaFragransOffice from "./assets/images/dracaena_fragrans_office_1780306247848.png";
 
 export const HERO_SLIDES = [
   {
-    image: lobbyTreePlanter,
+    image: "/images/lobby_tree_planter_1780305669999.png",
     tag: "CÂY XANH THỦ ĐÔ • ƯU ĐÃI THUÊ HÈ 2026",
     title: "MANG THIÊN NHIÊN VÀO VĂN PHÒNG",
     subtitle: "Chỉ từ 1.2 Triệu/Tháng - Thiết kế 3D tối ưu nhiệt độ, gieo mầm năng lượng thịnh vượng.",
     badge: "Giảm 15% Hợp Đồng"
   },
   {
-    image: officeGreeneryLobby,
+    image: "/images/office_greenery_lobby_1780305697016.png",
     tag: "BẢO HÀNH ĐỔI MỚI TOÀN DIỆN",
     title: "CHĂM SÓC ĐỊNH KỲ - ĐỔI CÂY MIỄN PHÍ",
     subtitle: "Kỹ thuật viên bón nước tỉ mẩn tỉ rải sạch bong bụi lá. Phát hiện cây úa héo rụng lả đổi mới trong 24h.",
     badge: "Thay thế FREE 24h"
   },
   {
-    image: officeGardenRelax,
+    image: "/images/office_garden_relax_1780305715599.png",
     tag: "ĐA DẠNG CHỦNG LOẠI CAO CẤP",
     title: "150+ MẪU CÂY PHONG THỦY ĐÓN LỘC",
     subtitle: "Kim tiền, thiết mộc lan quân vương tinh chế lọc benzene tia sóng điện từ mang phồn thỉnh mộc gia quý.",
     badge: "Khảo Sát 0Đ Tận Nơi"
   },
   {
-    image: corporateGoldPots,
+    image: "/images/corporate_gold_pots_1780305734535.png",
     tag: "SANG TRỌNG • ĐỘC ĐÁO • THỊNH VƯỢNG",
     title: "HƠN 150+ MẪU CHẬU CÂY PHONG THỦY",
     subtitle: "Sử dụng chậu mạ vàng, chậu đá mài cao cấp mang lại luồng sinh khí mới cho góc làm việc sành điệu.",
@@ -132,6 +127,7 @@ export default function App() {
 
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLeadsModal, setShowLeadsModal] = useState(false);
+  const [showSheetScript, setShowSheetScript] = useState(false);
 
   // Single file code export state
   const [showExportPanel, setShowExportPanel] = useState(true);
@@ -284,7 +280,7 @@ export default function App() {
       scientific: "Dracaena fragrans",
       benefits: "Lọc cực tốt khí benzene, toluene; Mang lại phú quý, may mắn thịnh vượng.",
       space: "Mặt tiền sảnh lớn, phòng họp VIP hoặc hành lang rộng rực ánh sáng.",
-      img: dracaenaFragransOffice,
+      img: "/images/dracaena_fragrans_office_1780306247848.png",
       size: "Dáng trụ cột cao, 1m4 - 1m8"
     },
     {
@@ -447,7 +443,7 @@ export default function App() {
               <div className="space-y-3">
                 <h4 className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black">WH</span>
-                  2. Đẩy Lead về Webhook URL (CRM, Google Sheets, Pancake)
+                  2. Đẩy Lead về Webhook URL / Google Sheets
                 </h4>
                 <div className="space-y-2">
                   <label className="block text-xs font-semibold text-slate-600">Webhook URL (POST JSON)</label>
@@ -462,8 +458,127 @@ export default function App() {
                     className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"
                   />
                   <p className="text-[10px] text-slate-400 leading-normal">
-                    * Thích hợp cho Google App Script tự động ghi vào Sheet, hoặc tích hợp Zapier, Make, Webhook Pancake LadiPage, CRM.
+                    * Nhận dữ liệu thời gian thực và tự động ghi thẳng vào Google Sheets, CRM hoặc LadiPage.
                   </p>
+                </div>
+
+                {/* Google Sheets Specific Assistant Section */}
+                <div className="bg-emerald-50 border border-emerald-150 rounded-xl p-4 space-y-3 mt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-emerald-600" />
+                      Kết nối nhanh Google Sheets của bạn
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSheetScript(!showSheetScript)}
+                      className="text-xs text-emerald-700 hover:text-emerald-950 underline font-semibold transition cursor-pointer"
+                    >
+                      {showSheetScript ? "Đóng hướng dẫn" : "Xem hướng dẫn & lấy mã"}
+                    </button>
+                  </div>
+
+                  {showSheetScript && (
+                    <div className="space-y-3 text-xs text-slate-700 leading-relaxed pt-2 border-t border-emerald-100">
+                      <p className="font-semibold text-emerald-950">
+                        Bảng tính của bạn: 
+                        <a 
+                          href="https://docs.google.com/spreadsheets/d/1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM/edit#gid=341656804" 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-indigo-600 hover:underline inline-flex items-center gap-1 ml-1 font-bold"
+                        >
+                          Mở Trang Google Sheet <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </p>
+
+                      <div className="space-y-1 bg-white/70 rounded-lg p-2.5 border border-emerald-100 text-[11px] space-y-1">
+                        <strong className="block text-emerald-900 mb-1">🛠️ Quy trình thiết lập gồm 3 bước:</strong>
+                        <p><strong>Bước 1:</strong> Mở bảng tính Google Sheets của bạn ➔ Trên Menu, chọn <strong className="text-emerald-900">Tiện ích mở rộng (Extensions)</strong> ➔ chọn <strong className="text-emerald-900">Apps Script</strong>.</p>
+                        <p><strong>Bước 2:</strong> Xóa hết code mặc định trong đó và dán đoạn mã bên dưới vào. Bấm <strong>Lưu (Ctrl + S)</strong>.</p>
+                        <p><strong>Bước 3:</strong> Bấm <strong className="text-indigo-700">Triển khai (Deploy)</strong> ở góc trên bên phải ➔ Chọn <strong className="text-indigo-700">Triển khai mới (New deployment)</strong> ➔ Bấm biểu tượng bánh răng chọn <strong className="text-emerald-950">Ứng dụng web (Web app)</strong>.</p>
+                        <ul className="list-disc pl-4 space-y-0.5 mt-1 text-slate-600">
+                          <li>Cấu hình: <em>"Ai có quyền truy cập"</em> (Who has access) chọn <strong>"Mọi người"</strong> (Anyone).</li>
+                          <li>Bấm <strong>Triển khai</strong> và cho phép cấp quyền (ủy quyền tài khoản Google của bạn).</li>
+                        </ul>
+                        <p className="mt-1 font-semibold text-emerald-900">➔ Sao chép "Url ứng dụng web" đã cấp dán vào ô "Webhook URL" ở trên!</p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="block text-[11px] font-bold text-slate-700">📋 Đoạn mã Script tối ưu riêng bảng tính của bạn:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const scriptCode = `function doPost(e) {
+  try {
+    var sheetId = "1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM";
+    var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
+    
+    // Nếu bảng tính rỗng, tự động tạo dòng tiêu đề trước
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["ID", "Thời Gian Đăng Ký", "Họ & Tên Khách Hàng", "Số Điện Thoại", "Gói Lựa Chọn", "Yêu Cầu / Ghi Chú", "Nguồn Form Đăng Ký"]);
+    }
+    
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.id || Date.now().toString(),
+      data.timestamp || new Date().toLocaleString("vi-VN"),
+      data.name || "",
+      data.phone || "",
+      data.service || "",
+      data.message || "",
+      data.source || ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success", "message": "Lead inserted successfully" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+                              navigator.clipboard.writeText(scriptCode);
+                              alert("Đã copy đoạn mã Apps Script thành công! Bây giờ hãy dán nó vào Google Apps Script.");
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" /> Copy Mã Script
+                          </button>
+                        </div>
+                        <pre className="bg-slate-900 text-slate-100 text-[10px] leading-relaxed p-3 rounded-lg overflow-x-auto max-h-[160px] font-mono border border-slate-800">
+{`function doPost(e) {
+  try {
+    var sheetId = "1iyYaoETQeK20USb-zRrLRV8ylUQj6rROFSXkq64GrwM";
+    var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
+    
+    // Nếu bảng tính rỗng, tự động tạo dòng tiêu đề trước
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["ID", "Thời Gian Đăng Ký", "Họ & Tên Khách Hàng", "Số Điện Thoại", "Gói Lựa Chọn", "Yêu Cầu / Ghi Chú", "Nguồn Form Đăng Ký"]);
+    }
+    
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.id || Date.now().toString(),
+      data.timestamp || new Date().toLocaleString("vi-VN"),
+      data.name || "",
+      data.phone || "",
+      data.service || "",
+      data.message || "",
+      data.source || ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success", "message": "Lead inserted successfully" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1060,7 +1175,7 @@ export default function App() {
               {/* Ensure image inside doesn't move with width of container */}
               <div className="absolute inset-0 w-[90vw] max-w-4xl h-[280px] sm:h-[420px]">
                 <img
-                  src={lobbyTreePlanter}
+                  src="/images/lobby_tree_planter_1780305669999.png"
                   alt="After Office Makeover"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
