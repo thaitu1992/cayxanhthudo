@@ -167,7 +167,7 @@ export default function App() {
       const match = webhookUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       if (match && match[1]) return match[1];
     }
-    return "1mfW5mpTKrJW46rWCAnMm1MtXOmgR6rSykdmoWnKqG58";
+    return "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
   })();
 
   const parsedSheetUrl = `https://docs.google.com/spreadsheets/d/${parsedSheetId}/edit?pli=1&gid=0#gid=0`;
