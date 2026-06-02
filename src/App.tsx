@@ -79,6 +79,27 @@ export default function App() {
 
   // Before/After comparison slider position
   const [sliderPosition, setSliderPosition] = useState(50);
+  const [sliderWidth, setSliderWidth] = useState(800);
+  const sliderContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sliderContainerRef.current) return;
+    const updateWidth = () => {
+      if (sliderContainerRef.current) {
+        setSliderWidth(sliderContainerRef.current.offsetWidth);
+      }
+    };
+    updateWidth();
+    
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(updateWidth);
+      observer.observe(sliderContainerRef.current);
+      return () => observer.disconnect();
+    } else {
+      window.addEventListener("resize", updateWidth);
+      return () => window.removeEventListener("resize", updateWidth);
+    }
+  }, []);
 
   // Auto-play the sliding hero banner
   useEffect(() => {
@@ -285,7 +306,7 @@ export default function App() {
   ];
 
   return (
-    <div className="font-sans text-slate-800 bg-slate-50 min-h-screen selection:bg-emerald-500 selection:text-white">
+    <div className="font-sans text-slate-800 bg-slate-50 min-h-screen selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       
       {/* WEBHOOK & TELEGRAM CONFIG MODAL */}
       {showConfigModal && (
@@ -1062,7 +1083,10 @@ export default function App() {
             </p>
           </div>
 
-          <div className="relative w-full h-[280px] sm:h-[420px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 select-none">
+          <div 
+            ref={sliderContainerRef}
+            className="relative w-full h-[280px] sm:h-[420px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 select-none"
+          >
             {/* Before (Gray Empty Office) */}
             <div className="absolute inset-0 w-full h-full">
               <img
@@ -1082,7 +1106,10 @@ export default function App() {
               style={{ width: `${sliderPosition}%` }}
             >
               {/* Ensure image inside doesn't move with width of container */}
-              <div className="absolute inset-0 w-[90vw] max-w-4xl h-[280px] sm:h-[420px]">
+              <div 
+                className="absolute inset-y-0 left-0 h-full"
+                style={{ width: `${sliderWidth}px` }}
+              >
                 <img
                   src="/images/lobby_tree_planter_1780305669999.png"
                   alt="After Office Makeover"
@@ -1121,7 +1148,7 @@ export default function App() {
 
       {/* SECTION 2: THÔNG TIN 3 DỊCH VỤ CHÍNH DẠNG CARD */}
       <section id="services" className="py-16 md:py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-emerald-700 text-xs font-extrabold tracking-widest uppercase bg-emerald-100/50 px-3 py-1.5 rounded-full">
@@ -1862,7 +1889,7 @@ export default function App() {
       </section>
 
       {/* SECTION 7: ĐÁNH GIÁ KHÁCH HÀNG REAL TESTIMONIALS */}
-      <section id="reviews" class="py-16 md:py-24 bg-white">
+      <section id="reviews" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -2093,7 +2120,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
-                        Tên liên hệ của quý khách <span class="text-rose-500">*</span>
+                        Tên liên hệ của quý khách <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -2106,7 +2133,7 @@ export default function App() {
 
                     <div>
                       <label className="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
-                        Điện thoại (Zalo nhận ảnh cây) <span class="text-rose-500">*</span>
+                        Điện thoại (Zalo nhận ảnh cây) <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -2211,7 +2238,7 @@ export default function App() {
                 <h5 className="text-white font-bold text-xs uppercase tracking-widest text-emerald-400">
                   THÔNG TIN DOANH NGHIỆP
                 </h5>
-                <ul class="space-y-2 text-xs">
+                <ul className="space-y-2 text-xs">
                   <li className="flex items-start gap-2">
                     <span className="text-slate-500 font-medium">Doanh nghiệp:</span>
                     <span className="text-slate-300 font-bold">{BUSINESS_INFO.name}</span>
